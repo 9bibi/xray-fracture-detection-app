@@ -1,3 +1,10 @@
+---
+title: Xray Fracture Detection App
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Orthopedic X-ray Fracture Detection
 
 Web prototype for automatic classification of orthopedic X-ray images using a fine-tuned ResNet50 model. The system accepts an X-ray image, validates the input, predicts whether the study is normal or fracture-suspected, and visualizes model attention with Grad-CAM.
@@ -147,4 +154,3 @@ The prototype demonstrates the integration of:
 - Grad-CAM does not prove exact fracture localization.
 - The validation layer is heuristic and may reject or accept edge cases incorrectly.
 - Clinical use would require external validation, expert review, and regulatory approval.
-
