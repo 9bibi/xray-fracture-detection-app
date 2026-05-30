@@ -29,23 +29,6 @@ Web prototype for automatic classification of orthopedic X-ray images using a fi
 └── test.jpg                        # Example test image
 ```
 
-## Model File Notice
-
-The trained model file is large:
-
-```text
-model/resnet50_mura_finetuned.keras
-```
-
-It is about 214 MB, so it cannot be uploaded to a normal GitHub repository directly because GitHub blocks files larger than 100 MB.
-
-Recommended options:
-
-1. Upload the code to GitHub and store the model separately, for example in Google Drive, GitHub Releases, or another file storage.
-2. Use Git LFS if you want the model file to be versioned inside the repository.
-
-If the model file is missing, the backend starts in demo mode and returns simulated predictions.
-
 ## Requirements
 
 - Python 3.12 is recommended
