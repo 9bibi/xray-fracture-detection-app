@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orthopedic X-ray Fracture Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design tokens ─────────────────────────────── */
+    :root {
+      --bg:           #eef1f8;
+      --surface:      #ffffff;
+      --surface-2:    #f5f7fc;
+      --border:       #dde2ef;
+      --accent:       #4a3fcf;
+      --accent-hover: #3730a3;
+      --accent-light: #ede9ff;
+      --accent-muted: #a5b4fc;
+      --danger:       #dc2626;
+      --danger-light: #fee2e2;
+      --success:      #16a34a;
+      --success-light:#dcfce7;
+      --warning:      #d97706;
+      --warning-light:#fef3c7;
+      --text-primary: #111827;
+      --text-2:       #4b5563;
+      --text-3:       #9ca3af;
+      --shadow-sm:    0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md:    0 4px 16px rgba(0,0,0,.09);
+      --shadow-lg:    0 12px 32px rgba(74,63,207,.12);
+      --radius:       18px;
+      --radius-sm:    10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Animated background mesh ──────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(74,63,207,.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 85% 80%, rgba(99,102,241,.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── Layout wrapper ─────────────────────────────── */
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      display: flex; align-items: center;
+      padding: 22px 0 0;
+      gap: 12px;
+    }
+    .brand-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-2); letter-spacing: .02em;
+    }
+    .nav-pill {
+      margin-left: auto;
+      font-size: 11px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase;
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 5px 13px; border-radius: 20px;
+    }
+
+    /* ── Hero section ───────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 44px 0 40px;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 400; line-height: 1.15;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      letter-spacing: 0;
+    }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero p {
+      font-size: 16px; color: var(--text-2);
+      max-width: 520px; margin: 0 auto 28px;
+      font-weight: 300;
+    }
+    .hero-tags {
+      display: flex; justify-content: center;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .tag {
+      font-size: 12px; color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 13px; border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ── Main two-column grid ───────────────────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr; } }
+
+    /* ── Card shell ─────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: box-shadow .25s;
+    }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .card-header {
+      padding: 22px 24px 0;
+    }
+    .card-header h2 {
+      font-size: 15px; font-weight: 600;
+      color: var(--text-primary); letter-spacing: 0;
+    }
+    .card-header p {
+      font-size: 13px; color: var(--text-3); margin-top: 3px;
+    }
+    .card-body { padding: 18px 24px 24px; }
+
+    /* ── Drop zone ──────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      min-height: 210px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 10px; cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative; overflow: hidden;
+      background: var(--surface-2);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .drop-zone input[type=file] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+      z-index: 3;
+    }
+    .drop-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent-light);
+      display: grid; place-items: center;
+      color: var(--accent);
+    }
+    .drop-icon svg { width: 24px; height: 24px; }
+    .drop-label {
+      font-size: 14px; font-weight: 500;
+      color: var(--text-2); text-align: center; line-height: 1.5;
+    }
+    .drop-label span { color: var(--accent); font-weight: 600; }
+    .drop-hint {
+      font-size: 12px; color: var(--text-3);
+    }
+
+    /* Preview state of drop zone */
+    .drop-zone.has-image {
+      border-color: var(--accent);
+      background: #000;
+    }
+    .drop-zone.has-image .drop-icon,
+    .drop-zone.has-image .drop-label,
+    .drop-zone.has-image .drop-hint { display: none; }
+    #preview-img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+      position: absolute; inset: 0; margin: auto;
+      display: none;
+      border-radius: 0;
+      z-index: 2;
+    }
+    .drop-zone.has-image #preview-img { display: block; }
+    .clear-file {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 50%;
+      background: rgba(17,24,39,.82);
+      color: #fff;
+      display: none;
+      place-items: center;
+      cursor: pointer;
+      z-index: 5;
+      font-size: 20px;
+      line-height: 1;
+      box-shadow: var(--shadow-md);
+    }
+    .drop-zone.has-image .clear-file { display: grid; }
+    .clear-file:hover { background: rgba(220,38,38,.92); }
+
+    /* ── Analyze button ─────────────────────────────── */
+    .btn-analyze {
+      width: 100%; margin-top: 14px;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600;
+      border: none; border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(74,63,207,.3);
+      letter-spacing: .02em;
+    }
+    .btn-analyze:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 6px 20px rgba(74,63,207,.4);
+      transform: translateY(-1px);
+    }
+    .btn-analyze:active:not(:disabled) { transform: translateY(0); }
+    .btn-analyze:disabled {
+      background: var(--accent-muted);
+      cursor: not-allowed; box-shadow: none; transform: none;
+    }
+    .btn-analyze svg { width: 18px; height: 18px; }
+
+    /* ── Analysis controls ─────────────────────────── */
+    .control-panel {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .control-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-2);
+      margin-bottom: 7px;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      gap: 4px;
+    }
+    .segmented button {
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: transparent;
+      color: var(--text-2);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .segmented button.active {
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+    .control-hint {
+      font-size: 11px;
+      color: var(--text-3);
+      line-height: 1.45;
+    }
+
+    /* ── Result panel ───────────────────────────────── */
+    .result-empty {
+      min-height: 210px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 10px; background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .result-empty-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--border);
+      display: grid; place-items: center;
+      color: var(--text-3);
+    }
+    .result-empty p {
+      font-size: 13px; color: var(--text-3);
+      font-weight: 500; text-align: center;
+    }
+
+    /* Verdict badge */
+    .verdict {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 18px; border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+    .verdict.fracture {
+      background: var(--danger-light);
+      border: 1px solid #fca5a5;
+    }
+    .verdict.normal {
+      background: var(--success-light);
+      border: 1px solid #86efac;
+    }
+    .verdict.uncertain {
+      background: var(--warning-light);
+      border: 1px solid #fcd34d;
+    }
+    .verdict-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .verdict.fracture .verdict-icon { background: var(--danger); }
+    .verdict.normal   .verdict-icon { background: var(--success); }
+    .verdict.uncertain .verdict-icon { background: var(--warning); }
+    .verdict-icon svg { width: 20px; height: 20px; color: #fff; }
+    .verdict-text .label {
+      font-size: 16px; font-weight: 700;
+      color: var(--text-primary);
+    }
+    .verdict-text .sublabel {
+      font-size: 12px; color: var(--text-2); margin-top: 1px;
+    }
+
+    /* Confidence bar */
+    .metric-row {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .metric-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+    .metric-value { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .bar-track {
+      height: 8px; border-radius: 4px;
+      background: var(--border); overflow: hidden; margin-bottom: 14px;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), #818cf8);
+      transition: width 1s ease;
+    }
+    .bar-fill.danger { background: linear-gradient(90deg, var(--danger), #f87171); }
+    .bar-fill.success { background: linear-gradient(90deg, var(--success), #4ade80); }
+    .bar-fill.warning { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+
+    /* Grad-CAM image */
+    .gradcam-wrap {
+      border-radius: var(--radius-sm); overflow: hidden;
+      border: 1px solid var(--border);
+      background: #000;
+      position: relative;
+    }
+    .gradcam-wrap img {
+      width: 100%; display: block;
+      object-fit: contain;
+    }
+    .gradcam-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,.6); color: #fff;
+      font-size: 10px; font-weight: 600; letter-spacing: .07em;
+      text-transform: uppercase; padding: 4px 9px;
+      border-radius: 20px;
+    }
+    /* prob pills */
+    .prob-row {
+      display: flex; gap: 10px; margin-top: 14px;
+    }
+    .prob-pill {
+      flex: 1; text-align: center; padding: 10px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+    }
+    .prob-pill .pval {
+      font-size: 18px; font-weight: 700;
+      color: var(--text-primary);
+    }
+    .prob-pill .plabel {
+      font-size: 11px; font-weight: 500;
+      color: var(--text-3); margin-top: 2px;
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .prob-pill.fracture-pill { background: var(--danger-light); border-color: #fca5a5; }
+    .prob-pill.normal-pill   { background: var(--success-light); border-color: #86efac; }
+    .prob-pill.fracture-pill .pval { color: var(--danger); }
+    .prob-pill.normal-pill   .pval { color: var(--success); }
+
+    .quality-box,
+    .report-box,
+    .clinical-note,
+    .history-card {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+    .quality-box.warning { background: var(--warning-light); border-color: #fcd34d; }
+    .box-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .report-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .report-item span {
+      display: block;
+      font-size: 10px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-weight: 800;
+    }
+    .report-item strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text-primary);
+      overflow-wrap: anywhere;
+    }
+    .clinical-note {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #9a3412;
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    /* demo-mode warning */
+    .demo-banner {
+      background: var(--warning-light); border: 1px solid #fcd34d;
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 12px; color: var(--warning); font-weight: 500;
+      display: flex; gap: 8px; align-items: center; margin-top: 12px;
+    }
+
+    /* ── About section ──────────────────────────────── */
+    .about-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 28px 28px 24px;
+    }
+    .history-card {
+      margin-bottom: 20px;
+      background: var(--surface);
+    }
+    .history-list {
+      display: grid;
+      gap: 8px;
+    }
+    .history-empty {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .history-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+      font-size: 12px;
+    }
+    .history-item strong { color: var(--text-primary); }
+    .history-item span { color: var(--text-3); }
+
+    .lang-toggle {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-2);
+      border-radius: 20px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+    }
+    .about-card h2 {
+      font-size: 15px; font-weight: 700;
+      margin-bottom: 18px; color: var(--text-primary);
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 18px 24px;
+    }
+    .about-item {
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      padding-left: 14px;
+      border-left: 3px solid var(--accent-light);
+    }
+    .about-item h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 0;
+    }
+    .about-item p {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    .about-notice {
+      margin-top: 22px;
+      padding: 16px 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #fed7aa;
+      background: #fff7ed;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .about-notice-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--warning);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .about-notice h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #9a3412;
+      margin-bottom: 4px;
+    }
+    .about-notice p {
+      font-size: 13px;
+      color: #9a3412;
+      line-height: 1.6;
+      max-width: 760px;
+    }
+    @media (max-width: 1100px) {
+      .about-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .about-grid { grid-template-columns: 1fr; }
+      .about-notice { grid-template-columns: 1fr; }
+    }
+
+    /* ── Loader spinner ─────────────────────────────── */
+    .spinner {
+      display: none;
+      width: 22px; height: 22px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Fade-in animation ─────────────────────────── */
+    .fade-in {
+      animation: fadeIn .4s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Error toast ────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--danger); color: #fff;
+      padding: 12px 20px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,.2);
+      z-index: 999; display: none;
+      animation: fadeIn .3s ease;
+    }
+    .toast.show { display: block; }
+
+    /* ── Footer ─────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 32px 0 0;
+      font-size: 12px; color: var(--text-3);
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+    footer span { color: var(--text-2); font-weight: 500; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="brand-name" data-i18n="brand">AI Diagnostic Assistant</div>
+    <button class="lang-toggle" id="langToggle" type="button">RU</button>
+    <div class="nav-pill">Diploma Work · IT-2307</div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1 data-i18n-html="heroTitle">Orthopedic X-ray<br/><em>Fracture Detection</em></h1>
+    <p data-i18n="heroCopy">Upload an orthopedic X-ray image for automated fracture classification powered by ResNet50 with Grad-CAM visual explanation.</p>
+    <div class="hero-tags">
+      <span class="tag">ResNet50 · Transfer Learning</span>
+      <span class="tag">MURA Dataset · 40k+ images</span>
+      <span class="tag">Grad-CAM Explainability</span>
+      <span class="tag">AUC-ROC 0.87</span>
+    </div>
+  </section>
+
+  <!-- Main two-column grid -->
+  <div class="main-grid">
+
+    <!-- LEFT: Upload -->
+    <div class="card">
+      <div class="card-header">
+        <h2 data-i18n="uploadTitle">X-ray Image Upload</h2>
+        <p data-i18n="uploadSubtitle">Supports JPG, PNG, BMP · max 20MB</p>
+      </div>
+      <div class="card-body">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" />
+          <img id="preview-img" src="" alt="Preview" />
+          <button class="clear-file" id="clearFileBtn" type="button" aria-label="Remove image">×</button>
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+          </div>
+          <div class="drop-label" data-i18n-html="dropLabel">Drop your X-ray here, or <span>browse</span></div>
+          <div class="drop-hint" data-i18n="dropHint">Supports JPG, PNG, BMP (max 20MB)</div>
+        </div>
+
+        <button class="btn-analyze" id="analyzeBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="btnIcon">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <div class="spinner" id="spinner"></div>
+          <span id="btnText" data-i18n="analyzeBtn">Analyze X-ray</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="card">
+      <div class="card-header">
+        <h2 data-i18n="resultsTitle">Analysis Results</h2>
+        <p data-i18n="resultsSubtitle">Prediction · Model score · Grad-CAM</p>
+      </div>
+      <div class="card-body">
+        <div id="resultArea">
+          <!-- Empty state -->
+          <div class="result-empty" id="emptyState">
+            <div class="result-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <p data-i18n-html="emptyState">Upload an X-ray and click<br/>"Analyze" to see results</p>
+          </div>
+
+          <!-- Result content (hidden initially) -->
+          <div id="resultContent" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <div class="history-card">
+    <div class="box-title" data-i18n="historyTitle">Recent analyses</div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty" data-i18n="historyEmpty">No analyses yet.</div>
+    </div>
+  </div>
+
+  <!-- About section -->
+  <div class="about-card">
+    <h2 data-i18n="aboutTitle">About This System</h2>
+    <div class="about-grid">
+      <div class="about-item">
+        <h3>Deep Learning Model</h3>
+        <p>ResNet50 pre-trained on ImageNet, fine-tuned on 36,808 MURA orthopedic X-rays using a two-phase transfer learning strategy.</p>
+      </div>
+      <div class="about-item">
+        <h3>Classification</h3>
+        <p>Research classifier for abnormality/fracture suspicion. The interface uses a review zone to avoid overconfident borderline decisions.</p>
+      </div>
+      <div class="about-item">
+        <h3>Model Performance</h3>
+        <p>Accuracy 81.4% · Precision 82.9% · Recall 77.4% · F1 80.1% · AUC-ROC 0.873 on the MURA validation set.</p>
+      </div>
+      <div class="about-item">
+        <h3>Explainability (Grad-CAM)</h3>
+        <p>Gradient-weighted Class Activation Maps highlight regions the model focuses on — warm colors indicate fracture-relevant areas.</p>
+      </div>
+      <div class="about-item">
+        <h3>Dataset</h3>
+        <p>MURA v1.1 (Stanford) — 7 body parts: Elbow, Finger, Forearm, Hand, Humerus, Shoulder, Wrist. 40,005 total images.</p>
+      </div>
+    </div>
+    <div class="about-notice">
+      <div class="about-notice-icon" aria-hidden="true">!</div>
+      <div>
+        <h3>Important Notice</h3>
+        <p>This system is a research prototype for academic purposes. It is <strong>not</strong> a substitute for professional medical diagnosis.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Diploma Work · <span>IT-2307</span> · Aibibi Nygymetolla, Moldir Kapal, Ayala Zholdybayeva</p>
+    <p style="margin-top:4px">Automatic Classification of Orthopedic X-ray Images Using Deep Learning Methods</p>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<!-- Error toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const dropZone   = document.getElementById('dropZone');
+  const fileInput  = document.getElementById('fileInput');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const btnText    = document.getElementById('btnText');
+  const btnIcon    = document.getElementById('btnIcon');
+  const spinner    = document.getElementById('spinner');
+  const previewImg = document.getElementById('preview-img');
+  const emptyState = document.getElementById('emptyState');
+  const resultContent = document.getElementById('resultContent');
+  const toast      = document.getElementById('toast');
+  const langToggle = document.getElementById('langToggle');
+  const clearFileBtn = document.getElementById('clearFileBtn');
+  const historyList = document.getElementById('historyList');
+
+  let selectedFile = null;
+  let lang = 'en';
+  let lastResult = null;
+  let history = [];
+
+  const i18n = {
+    en: {
+      brand: 'AI Diagnostic Assistant',
+      heroTitle: 'Orthopedic X-ray<br/><em>Fracture Detection</em>',
+      heroCopy: 'Upload an orthopedic X-ray image for automated fracture classification powered by ResNet50 with Grad-CAM visual explanation.',
+      uploadTitle: 'X-ray Image Upload',
+      uploadSubtitle: 'Supports JPG, PNG, BMP · max 20MB',
+      dropLabel: 'Drop your X-ray here, or <span>browse</span>',
+      dropHint: 'Supports JPG, PNG, BMP (max 20MB)',
+      analysisMode: 'Analysis mode',
+      analysisHint: 'TTA averages several augmented passes. It is slower, but usually more stable for demonstration.',
+      analyzeBtn: 'Analyze X-ray',
+      analyzing: 'Analyzing...',
+      resultsTitle: 'Analysis Results',
+      resultsSubtitle: 'Prediction · Model score · Grad-CAM',
+      emptyState: 'Upload an X-ray and click<br/>"Analyze" to see results',
+      historyTitle: 'Recent analyses',
+      historyEmpty: 'No analyses yet.',
+      aboutTitle: 'About This System',
+      fracture: 'Fracture Suspected',
+      normal: 'No Fracture',
+      uncertain: 'Review Recommended',
+      fractureSub: 'Abnormality suspected; manual specialist review recommended',
+      normalSub: 'Model leans normal; still not a clinical diagnosis',
+      uncertainSub: 'Borderline score; manual review is recommended',
+      modelScore: 'Model score, not calibrated probability',
+      fractureProb: 'Fracture score',
+      normalProb: 'Normal score',
+      original: 'Original',
+      gradcam: 'Grad-CAM',
+      opacity: 'Heatmap opacity',
+      quality: 'Image quality',
+      report: 'Diagnostic report',
+      clinicalNote: 'Research prototype only. The MURA labels represent abnormal/normal studies, and this result must not replace radiologist diagnosis.',
+      ok: 'OK',
+      warning: 'Warning',
+      model: 'Model',
+      mode: 'Mode',
+      thresholdZone: 'Decision zone',
+      gradcamTarget: 'Grad-CAM target',
+      device: 'Device',
+      ttaStd: 'TTA std',
+      error: 'Analysis failed. Please try again.',
+      notXrayError: 'This does not appear to be an X-ray image. Please upload a valid radiographic scan.',
+      demo: 'Demo mode — model file not loaded. Showing simulated prediction.',
+      removeImage: 'Remove image',
+    },
+    ru: {
+      brand: 'AI диагностический ассистент',
+      heroTitle: 'Анализ ортопедических X-ray<br/><em>снимков</em>',
+      heroCopy: 'Загрузите ортопедический рентгеновский снимок: система покажет score модели, рекомендацию и Grad-CAM объяснение.',
+      uploadTitle: 'Загрузка X-ray снимка',
+      uploadSubtitle: 'JPG, PNG, BMP · максимум 20MB',
+      dropLabel: 'Перетащите снимок сюда или <span>выберите файл</span>',
+      dropHint: 'JPG, PNG, BMP (макс. 20MB)',
+      analysisMode: 'Режим анализа',
+      analysisHint: 'TTA усредняет несколько аугментированных прогонов. Медленнее, но обычно стабильнее для демонстрации.',
+      analyzeBtn: 'Анализировать снимок',
+      analyzing: 'Анализ...',
+      resultsTitle: 'Результаты анализа',
+      resultsSubtitle: 'Решение · score модели · Grad-CAM',
+      emptyState: 'Загрузите X-ray и нажмите<br/>«Анализировать»',
+      historyTitle: 'Последние анализы',
+      historyEmpty: 'Пока анализов нет.',
+      aboutTitle: 'О системе',
+      fracture: 'Подозрение на перелом',
+      normal: 'Перелом не обнаружен',
+      uncertain: 'Нужна проверка',
+      fractureSub: 'Есть подозрение на патологию; нужна проверка специалиста',
+      normalSub: 'Модель склоняется к норме; это не клинический диагноз',
+      uncertainSub: 'Пограничный score; рекомендуется ручная проверка',
+      modelScore: 'Score модели, не калиброванная вероятность',
+      fractureProb: 'Score перелома',
+      normalProb: 'Score нормы',
+      original: 'Оригинал',
+      gradcam: 'Grad-CAM',
+      opacity: 'Прозрачность карты',
+      quality: 'Качество снимка',
+      report: 'Диагностический отчёт',
+      clinicalNote: 'Это исследовательский прототип. Разметка MURA означает abnormal/normal, поэтому результат не заменяет диагноз радиолога.',
+      ok: 'OK',
+      warning: 'Предупреждение',
+      model: 'Модель',
+      mode: 'Режим',
+      thresholdZone: 'Зона решения',
+      gradcamTarget: 'Цель Grad-CAM',
+      device: 'Устройство',
+      ttaStd: 'TTA std',
+      error: 'Не удалось выполнить анализ. Попробуйте ещё раз.',
+      notXrayError: 'Это не похоже на X-ray снимок. Загрузите рентгеновское изображение.',
+      demo: 'Demo mode — файл модели не загружен, показана симуляция.',
+      removeImage: 'Удалить снимок',
+    }
+  };
+
+  function tr(key) {
+    return i18n[lang][key] || i18n.en[key] || key;
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = tr(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      el.innerHTML = tr(el.dataset.i18nHtml);
+    });
+    langToggle.textContent = lang === 'en' ? 'RU' : 'EN';
+    clearFileBtn.setAttribute('aria-label', tr('removeImage'));
+    if (!analyzeBtn.disabled || !selectedFile) btnText.textContent = tr('analyzeBtn');
+    if (lastResult) renderResult(lastResult, false);
+    renderHistory();
+  }
+
+  langToggle.addEventListener('click', () => {
+    lang = lang === 'en' ? 'ru' : 'en';
+    applyLanguage();
+  });
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault(); dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  clearFileBtn.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    resetFile();
+  });
+
+  function handleFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      previewImg.src = ev.target.result;
+      dropZone.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+    analyzeBtn.disabled = false;
+    emptyState.style.display = 'flex';
+    resultContent.style.display = 'none';
+    resultContent.innerHTML = '';
+  }
+
+  function resetFile() {
+    selectedFile = null;
+    fileInput.value = '';
+    previewImg.src = '';
+    dropZone.classList.remove('has-image', 'drag-over');
+    analyzeBtn.disabled = true;
+    btnText.textContent = tr('analyzeBtn');
+    btnIcon.style.display = 'block';
+    spinner.style.display = 'none';
+    emptyState.style.display = 'flex';
+    resultContent.style.display = 'none';
+    resultContent.innerHTML = '';
+    lastResult = null;
+  }
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await fetch('/predict', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Server error' }));
+        throw new Error(formatApiError(err));
+      }
+      const data = await res.json();
+      renderResult(data, true);
+    } catch (err) {
+      showToast(err.message || tr('error'));
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  function formatApiError(err) {
+    const detail = err && err.detail;
+    if (typeof detail === 'string') return detail;
+    if (detail && typeof detail === 'object') {
+      if (detail.error_code === 'not_xray_image') return tr('notXrayError');
+      const reasons = Array.isArray(detail.reasons) ? detail.reasons : [];
+      return [detail.message, ...reasons].filter(Boolean).join(' ');
+    }
+    return 'Server error';
+  }
+
+  function setLoading(on) {
+    analyzeBtn.disabled = on;
+    btnIcon.style.display = on ? 'none' : 'block';
+    spinner.style.display = on ? 'block' : 'none';
+    btnText.textContent = on ? tr('analyzing') : tr('analyzeBtn');
+  }
+
+  function labelFor(type) {
+    if (type === 'fracture') return tr('fracture');
+    if (type === 'uncertain') return tr('uncertain');
+    return tr('normal');
+  }
+
+  function sublabelFor(type) {
+    if (type === 'fracture') return tr('fractureSub');
+    if (type === 'uncertain') return tr('uncertainSub');
+    return tr('normalSub');
+  }
+
+  function iconFor(type) {
+    if (type === 'fracture') {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    }
+    if (type === 'uncertain') {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    }
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+
+  function renderResult(data, addToHistory = true) {
+    lastResult = data;
+    const type = data.label_type || (data.label === 'Fracture' ? 'fracture' : 'normal');
+    const colorClass = type === 'fracture' ? 'fracture' : (type === 'uncertain' ? 'uncertain' : 'normal');
+    const barClass = type === 'fracture' ? 'danger' : (type === 'uncertain' ? 'warning' : 'success');
+    const confPct = data.confidence;
+    const probFrac = (data.prob_fracture * 100).toFixed(1);
+    const probNorm = (data.prob_normal * 100).toFixed(1);
+    const gradcamTarget = data.gradcam_target === 'normal' ? tr('normal') : tr('fracture');
+    const q = data.quality || { status: 'ok', warnings: [] };
+    const qText = q.warnings && q.warnings.length ? q.warnings.join(', ') : tr('ok');
+    const modeLabel = `TTA x${data.tta_passes || 5}`;
+    const zone = `${(data.decision_thresholds.normal_max * 100).toFixed(0)}% / ${(data.decision_thresholds.fracture_min * 100).toFixed(0)}%`;
+
+    const demoHtml = data.demo_mode
+      ? `<div class="demo-banner">${tr('demo')}</div>`
+      : '';
+
+    const html = `
+      <div class="fade-in">
+        <div class="verdict ${colorClass}">
+          <div class="verdict-icon">${iconFor(type)}</div>
+          <div class="verdict-text">
+            <div class="label">${labelFor(type)}</div>
+            <div class="sublabel">${sublabelFor(type)}</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-label">${tr('modelScore')}</span>
+          <span class="metric-value">${confPct}%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill ${barClass}" style="width: ${confPct}%"></div>
+        </div>
+
+        <div class="prob-row">
+          <div class="prob-pill fracture-pill">
+            <div class="pval">${probFrac}%</div>
+            <div class="plabel">${tr('fractureProb')}</div>
+          </div>
+          <div class="prob-pill normal-pill">
+            <div class="pval">${probNorm}%</div>
+            <div class="plabel">${tr('normalProb')}</div>
+          </div>
+        </div>
+
+        <div class="gradcam-wrap">
+          <img src="data:image/png;base64,${data.gradcam_b64}" alt="Grad-CAM overlay" />
+          <div class="gradcam-badge">${tr('gradcam')} · ${gradcamTarget}</div>
+        </div>
+
+        <div class="quality-box ${q.status === 'warning' ? 'warning' : ''}">
+          <div class="box-title">${tr('quality')}: ${q.status === 'warning' ? tr('warning') : tr('ok')}</div>
+          <div class="control-hint">${qText} · ${q.width || '-'}x${q.height || '-'} · contrast ${q.contrast ?? '-'}</div>
+        </div>
+
+        <div class="report-box">
+          <div class="box-title">${tr('report')}</div>
+          <div class="report-grid">
+            <div class="report-item"><span>${tr('model')}</span><strong>${data.model_name}</strong></div>
+            <div class="report-item"><span>${tr('mode')}</span><strong>${modeLabel}</strong></div>
+            <div class="report-item"><span>${tr('thresholdZone')}</span><strong>${zone}</strong></div>
+            <div class="report-item"><span>${tr('gradcamTarget')}</span><strong>${gradcamTarget}</strong></div>
+            <div class="report-item"><span>${tr('device')}</span><strong>${data.device_mode}</strong></div>
+            <div class="report-item"><span>${tr('ttaStd')}</span><strong>${data.prediction_std}</strong></div>
+          </div>
+        </div>
+
+        <div class="clinical-note">${tr('clinicalNote')}</div>
+        ${demoHtml}
+      </div>
+    `;
+
+    emptyState.style.display = 'none';
+    resultContent.innerHTML = html;
+    resultContent.style.display = 'block';
+
+    if (addToHistory) {
+      history.unshift({
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        type,
+        prob: probFrac,
+        mode: modeLabel,
+      });
+      history = history.slice(0, 5);
+      renderHistory();
+    }
+  }
+
+  function renderHistory() {
+    if (!history.length) {
+      historyList.innerHTML = `<div class="history-empty">${tr('historyEmpty')}</div>`;
+      return;
+    }
+    historyList.innerHTML = history.map(item => `
+      <div class="history-item">
+        <div><strong>${labelFor(item.type)}</strong><br/><span>${item.time} · ${item.mode}</span></div>
+        <span>${item.prob}%</span>
+      </div>
+    `).join('');
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  applyLanguage();
+</script>
+</body>
+</html>

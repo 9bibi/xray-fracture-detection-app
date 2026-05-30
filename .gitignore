@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+.venv-mac/
+.runvenv/
+venv/
+env/
+
+# Local editor settings
+.vscode/
+.idea/
+
+# Logs and runtime files
+*.log
+.env
+.env.*
+
+# Large trained model files.
+# GitHub blocks files larger than 100 MB unless Git LFS is used.
+model/*.keras
+model/*.h5
+model/*.pt
+model/*.pth
+model/*.onnx
+
