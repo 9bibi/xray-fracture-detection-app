@@ -29,6 +29,10 @@ Web prototype for automatic classification of orthopedic X-ray images using a fi
 └── test.jpg                        # Example test image
 ```
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 98b2a83 (Update README.md)
 ## Requirements
 
 - Python 3.12 is recommended
@@ -59,12 +63,6 @@ Install dependencies:
 
 ```bash
 pip install -r requirements.txt
-```
-
-Place the trained model at:
-
-```text
-model/resnet50_mura_finetuned.keras
 ```
 
 ## Running the App
