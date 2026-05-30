@@ -5,7 +5,7 @@ MODEL_PATH="${MODEL_PATH:-model/resnet50_mura_finetuned.keras}"
 
 if [ -z "${MODEL_URL:-}" ]; then
   echo "MODEL_URL is not set."
-  echo "Set MODEL_URL in Render to the GitHub Release asset URL for the .keras file."
+  echo "Set MODEL_URL to the GitHub Release asset URL for the .keras file."
   exit 1
 fi
 
@@ -21,4 +21,3 @@ curl -L --fail --retry 3 --retry-delay 5 "$MODEL_URL" -o "$MODEL_PATH"
 
 echo "Model downloaded:"
 ls -lh "$MODEL_PATH"
-

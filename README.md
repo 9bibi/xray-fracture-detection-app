@@ -45,7 +45,7 @@ Web prototype for automatic classification of orthopedic X-ray images using a fi
 Dependencies are listed in `requirements.txt`:
 
 ```text
-fastapis
+fastapi
 uvicorn
 python-multipart
 tensorflow
