@@ -4,10 +4,9 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt && bash scripts/fetch_model.sh
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: bash scripts/start.sh
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
       - key: MODEL_URL
         sync: false
-

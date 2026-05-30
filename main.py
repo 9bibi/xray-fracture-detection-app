@@ -7,6 +7,7 @@ Run with:
 
 import io
 import base64
+import os
 import warnings
 import numpy as np
 import cv2
@@ -41,7 +42,7 @@ MAX_TTA_PASSES = 8
 DEFAULT_TTA_PASSES = 5
 DISPLAY_MAX_SIZE = 900
 ALPHA_OVERLAY = 0.42
-MODEL_PATH    = Path("model/resnet50_mura_finetuned.keras")
+MODEL_PATH    = Path(os.getenv("MODEL_PATH", "model/resnet50_mura_finetuned.keras"))
 MODEL_FAMILY  = "resnet50"
 MODEL_DISPLAY_NAME = "ResNet50_MURA"
 
@@ -72,10 +73,11 @@ def load_model():
     preprocess_fn = get_preprocess_fn(MODEL_FAMILY)
 
     if not MODEL_PATH.exists():
-        print(f"WARNING: model not found at '{MODEL_PATH}' — running in DEMO MODE.")
+        print(f"WARNING: model not found at '{MODEL_PATH.resolve()}' — running in DEMO MODE.")
+        print(f"Current working directory: {Path.cwd()}")
         return
 
-    print(f"Loading model: {MODEL_PATH}")
+    print(f"Loading model: {MODEL_PATH.resolve()}")
     model = keras.models.load_model(str(MODEL_PATH), compile=False)
     print(f"  Loaded: {model.name}")
 
